@@ -15,11 +15,7 @@ export function Recorder({ stream, onStop, autoStart }: RecorderProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  useEffect(() => {
-    if (autoStart && stream && !isRecording) {
-      startRecording();
-    }
-  }, [autoStart, stream]);
+
 
   // Cleanup on unmount
   useEffect(() => {
@@ -32,16 +28,16 @@ export function Recorder({ stream, onStop, autoStart }: RecorderProps) {
 
   const startRecording = () => {
     if (!stream) return;
-    
+
     chunksRef.current = [];
     const mr = new MediaRecorder(stream);
-    
+
     mr.ondataavailable = (e) => {
       if (e.data.size > 0) {
         chunksRef.current.push(e.data);
       }
     };
-    
+
     mr.onstop = () => {
       const blob = new Blob(chunksRef.current, { type: "video/webm" });
       onStop(blob);
@@ -59,6 +55,12 @@ export function Recorder({ stream, onStop, autoStart }: RecorderProps) {
     }
   };
 
+  useEffect(() => {
+    if (autoStart && stream && !isRecording) {
+      startRecording();
+    }
+  }, [autoStart, stream]);
+
   if (!stream) {
     return <div className="text-muted-foreground text-sm">Waiting for camera...</div>;
   }
@@ -67,19 +69,19 @@ export function Recorder({ stream, onStop, autoStart }: RecorderProps) {
     <div className="flex flex-col items-center gap-2">
       {!isRecording ? (
         <Button onClick={startRecording} variant="default" className="w-full bg-red-600 hover:bg-red-700">
-           <div className="w-3 h-3 rounded-full bg-white mr-2" />
-           Record Answer
+          <div className="w-3 h-3 rounded-full bg-white mr-2" />
+          Record Answer
         </Button>
       ) : (
         <Button onClick={stopRecording} variant="outline" className="w-full border-red-500 text-red-500 hover:bg-red-50">
-           <Square className="w-4 h-4 mr-2" />
-           Stop Recording
+          <Square className="w-4 h-4 mr-2" />
+          Stop Recording
         </Button>
       )}
       {isRecording && (
         <div className="flex items-center gap-2 text-red-600 text-sm animate-pulse">
-           <div className="w-2 h-2 rounded-full bg-red-600" />
-           Recording...
+          <div className="w-2 h-2 rounded-full bg-red-600" />
+          Recording...
         </div>
       )}
     </div>

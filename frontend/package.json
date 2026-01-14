@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:client\" \"npm:dev:server\"",
     "dev:client": "next dev",
-    "dev:server": "cd ../backend && uvicorn main:app --reload --port 8000",
+    "dev:server": "cd ../backend && python3 main.py",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

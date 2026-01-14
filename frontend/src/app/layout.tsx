@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Interview Battle Royale",
-  description: "Practice your interview skills in a battle royale format.",
+  title: "Coffee Chat Simulator",
+  description: "Relax, mingle, and connect with peers in a virtual café.",
 };
 
 export default function RootLayout({
