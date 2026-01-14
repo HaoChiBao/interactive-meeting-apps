@@ -167,7 +167,7 @@ export function IntermissionCanvas({ localStream, className }: IntermissionCanva
                     const targetY = p.y ?? 300;
 
                     // Current visual pos
-                    const current = prev[p.name] || { x: targetX, y: targetY };
+                    const current = prev[p.id] || { x: targetX, y: targetY };
 
                     // Time-based lerp for framerate independence
                     // Using 15 decay for snappy but smooth interpolation (~150ms catchup)
@@ -271,6 +271,7 @@ export function IntermissionCanvas({ localStream, className }: IntermissionCanva
                                 isMe={isMe}
                                 stream={isMe ? stream : undefined}
                                 cameraEnabled={p.cameraEnabled}
+                                lastVideoFrame={p.lastVideoFrame}
                                 className={!isMe ? "cursor-pointer" : ""}
                                 onClick={() => !isMe && setInviteTarget({ id: p.id, name: p.name })}
                                 volume={audioVolumes[id] || 0}
@@ -374,6 +375,44 @@ export function IntermissionCanvas({ localStream, className }: IntermissionCanva
                     }}
                 />
             )}
+
+            {/* Minimap (Bottom Right) */}
+            <div className="absolute bottom-8 right-8 w-48 h-36 bg-white/90 border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 opacity-90 hidden md:block">
+                <div className="relative w-full h-full bg-slate-50"
+                    style={{
+                        backgroundImage: "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+                        backgroundSize: "20px 20px"
+                    }}
+                >
+                    {/* Center Marker helper (400,300 world origin) */}
+                    <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-slate-200 rounded-full -translate-x-1/2 -translate-y-1/2" />
+
+                    {Object.entries(visualState).map(([id, pos]) => {
+                        const isMe = me?.id === id;
+                        // Scale world coordinates to fit map (assuming 400,300 is center)
+                        // 192px width, 144px height (w-48, h-36)
+                        const miniScale = 0.15;
+
+                        // Clamp positions to keep dot visible within the map bounds
+                        let miniX = (pos.x - 400) * miniScale + 96;
+                        let miniY = (pos.y - 300) * miniScale + 72;
+
+                        // Clamp with margin (dot size ~10px)
+                        miniX = Math.max(5, Math.min(187, miniX));
+                        miniY = Math.max(5, Math.min(139, miniY));
+
+                        return (
+                            <div key={id}
+                                className={cn(
+                                    "absolute w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-sm border border-white/50",
+                                    isMe ? "bg-indigo-500 z-10" : "bg-slate-400"
+                                )}
+                                style={{ left: miniX, top: miniY }}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
 
             <AudioChat
                 visualState={visualState}

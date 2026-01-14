@@ -61,7 +61,7 @@ class Game:
             
             state_snapshot = {}
             for uid, p in self.players.items():
-                speed = 300 # pixels per second
+                speed = 500 # pixels per second (increased from 300)
                 dt = 0.05 # 50ms tick
                 
                 dx = 0
