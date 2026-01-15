@@ -3,12 +3,9 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGameStore } from "@/store/useGameStore";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { AvatarStickFigure } from "@/components/AvatarStickFigure";
 import { getMediaStream } from "@/lib/media";
 import { Loader2, Mic, Video, VideoOff } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 function PreflightContent() {
   const router = useRouter();
@@ -84,95 +81,65 @@ function PreflightContent() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-zinc-50 text-zinc-900 font-sans">
-      {/* Banner Title */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#4294DD]">Coffee Chat Simulator</h1>
-      </div>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-zinc-50 text-zinc-900 font-sans">
+      <h1 className="text-4xl font-bold mb-10 text-zinc-800 tracking-tight">
+        Setup Your Avatar
+      </h1>
 
-      <Card className="w-full max-w-md shadow-xl shadow-blue-100/50 border-2 border-blue-100 overflow-visible bg-white">
-        <CardContent className="pt-12 pb-8 px-8 flex flex-col items-center gap-6">
-          <h1 className="text-5xl font-bold tracking-tight text-[#4294DD]" style={{
-            fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-            letterSpacing: "-.50px", lineHeight: "1.00"
-          }}>Setup Your Avatar</h1>
+      <div className="flex flex-col items-center gap-8 w-full max-w-md">
 
-          {/* Avatar Container */}
-          <div className="relative flex justify-center items-center w-full h-[220px] bg-zinc-100/50 rounded-2xl border border-zinc-100">
-            <div className="transform scale-120 origin-center">
-              <AvatarStickFigure
-                name={name}
-                isMe={true}
-                stream={stream}
-                hideNameTag={true}
-                cameraEnabled={cameraEnabled}
-              />
-            </div>
+        {/* Avatar Container */}
+        <div className="relative flex justify-center items-center w-full h-[220px] bg-zinc-100 rounded-lg border border-zinc-200">
+          <div className="transform scale-110">
+            <AvatarStickFigure
+              name={name}
+              isMe={true}
+              stream={stream}
+              hideNameTag={true}
+              cameraEnabled={cameraEnabled}
+            />
+          </div>
 
-            {/* Name Badge */}
-            <div className="absolute top-3 right-3 bg-white/90 text-zinc-800 text-xs px-2.5 py-1 rounded-md font-medium shadow-sm border border-zinc-200/50 backdrop-blur-sm"
-              style={{
-                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-                letterSpacing: "-.50px", lineHeight: "1.00"
-              }}>
-              {name} <span className="text-zinc-400 ml-1"
-              >(You)</span>
+          {/* Simple Name Tag */}
+          <div className="absolute top-4 right-4 text-xs font-medium text-zinc-500">
+            {name} (You)
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-col items-center gap-6 w-full">
+          <div className="flex gap-4">
+            <button
+              onClick={toggleVideo}
+              disabled={!stream}
+              className={`p-3 rounded-full transition-colors flex items-center justify-center ${cameraEnabled ? 'bg-zinc-800 text-white hover:bg-zinc-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+            >
+              {cameraEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+            </button>
+            <div className="p-3 rounded-full border border-zinc-200 bg-white text-zinc-300">
+              <Mic className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-4 w-full">
-            {/* Controls */}
-            <div className="flex gap-3">
-              <Button
-                size="icon"
-                onClick={toggleVideo}
-                disabled={!stream}
-                className={`rounded-full w-10 h-10 transition-colors ${cameraEnabled ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-red-500 hover:bg-red-600'}`}
-              >
-                {cameraEnabled ? <Video className="w-4 h-4 text-white" /> : <VideoOff className="w-4 h-4 text-white" />}
-              </Button>
-              <Button
-                size="icon"
-                disabled
-                variant="outline"
-                className="rounded-full w-10 h-10 border-zinc-200 bg-white"
-              >
-                <Mic className="w-4 h-4 text-zinc-400" />
-              </Button>
+          {error && (
+            <div className="text-sm text-red-500 text-center bg-red-50 px-3 py-1 rounded">
+              {error}
             </div>
+          )}
 
-            {error && (
-              <div className="text-xs text-red-500 text-center font-medium bg-red-50 px-3 py-1 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <div className="text-sm text-zinc-400 font-medium font-inter mt-1"
-              style={{
-                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-                letterSpacing: "-.50px", lineHeight: "1.00"
-              }}
-            >
-              Room Code: <span className="font-inter text-zinc-600">{code}</span>
-            </div>
-
-            <Button
-              className="w-full text-xl font-bold h-12 rounded-lg shadow-lg shadow-blue-400/10 mt-2 transition-all active:scale-[0.98] border-2 border-[#4294DD] bg-white text-[#4294DD] hover:bg-[#4294DD] hover:text-white"
-              style={{
-                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-                letterSpacing: "-.50px",
-                lineHeight: "1.00"
-              }}
+          <div className="w-full space-y-2">
+            <button
               onClick={handleEnter}
+              className="w-full py-3 bg-zinc-800 text-white rounded-md font-medium text-lg hover:bg-zinc-700 transition-colors"
             >
               Enter Lobby
-            </Button>
+            </button>
+            <div className="text-center text-zinc-400 text-sm font-mono">
+              CODE: {code}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="mt-8 text-xs text-zinc-300 font-medium">
-        Ready to chat?
       </div>
     </main>
   );
