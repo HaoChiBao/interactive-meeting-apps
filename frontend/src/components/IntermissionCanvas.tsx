@@ -378,40 +378,74 @@ export function IntermissionCanvas({ localStream, className }: IntermissionCanva
 
             {/* Minimap (Bottom Right) */}
             <div className="absolute bottom-8 right-8 w-48 h-36 bg-white/90 border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 opacity-90 hidden md:block">
-                <div className="relative w-full h-full bg-slate-50"
-                    style={{
-                        backgroundImage: "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-                        backgroundSize: "20px 20px"
-                    }}
-                >
-                    {/* Center Marker helper (400,300 world origin) */}
-                    <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-slate-200 rounded-full -translate-x-1/2 -translate-y-1/2" />
+                {/* Dynamic Minimap Calculation */}
+                {(() => {
+                    const players = Object.values(visualState);
+                    if (players.length === 0) return null;
 
-                    {Object.entries(visualState).map(([id, pos]) => {
-                        const isMe = me?.id === id;
-                        // Scale world coordinates to fit map (assuming 400,300 is center)
-                        // 192px width, 144px height (w-48, h-36)
-                        const miniScale = 0.15;
+                    // 1. Calculate Bounding Box
+                    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                    players.forEach(p => {
+                        if (p.x < minX) minX = p.x;
+                        if (p.x > maxX) maxX = p.x;
+                        if (p.y < minY) minY = p.y;
+                        if (p.y > maxY) maxY = p.y;
+                    });
 
-                        // Clamp positions to keep dot visible within the map bounds
-                        let miniX = (pos.x - 400) * miniScale + 96;
-                        let miniY = (pos.y - 300) * miniScale + 72;
+                    // Add some padding (world units) around the extremes ? 
+                    // Or ensure min size (e.g. if one player, don't zoom to infinity)
+                    const padding = 600; // minimum world view width/height (increased to prevent too-close zoom)
+                    const width = Math.max(maxX - minX, padding);
+                    const height = Math.max(maxY - minY, padding);
 
-                        // Clamp with margin (dot size ~10px)
-                        miniX = Math.max(5, Math.min(187, miniX));
-                        miniY = Math.max(5, Math.min(139, miniY));
+                    // 2. Calculate Fit
+                    const mapW = 192; // w-48
+                    const mapH = 144; // h-36
+                    const scaleX = mapW / (width + 100); // +100 margin
+                    const scaleY = mapH / (height + 100);
+                    const scale = Math.min(scaleX, scaleY, 0.5); // Cap max zoom (0.5 is 2x zoom out compared to 1.0)
 
-                        return (
-                            <div key={id}
-                                className={cn(
-                                    "absolute w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-sm border border-white/50",
-                                    isMe ? "bg-indigo-500 z-10" : "bg-slate-400"
-                                )}
-                                style={{ left: miniX, top: miniY }}
-                            />
-                        );
-                    })}
-                </div>
+                    // 3. Center Point
+                    const cx = (minX + maxX) / 2;
+                    const cy = (minY + maxY) / 2;
+
+                    return (
+                        <div className="relative w-full h-full bg-slate-50"
+                            style={{
+                                backgroundImage: "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+                                backgroundSize: `${50 * scale}px ${50 * scale}px`,
+                                backgroundPosition: "center"
+                            }}
+                        >
+                            {/* Debug Center helper (optional, can remove) */}
+                            {/* <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-red-500/20 rounded-full -translate-x-1/2 -translate-y-1/2" /> */}
+
+                            {Object.entries(visualState).map(([id, pos]) => {
+                                const isMe = me?.id === id;
+
+                                // Transform world -> minimap
+                                // (pos - center) * scale + mapCenter
+                                const miniX = (pos.x - cx) * scale + (mapW / 2);
+                                const miniY = (pos.y - cy) * scale + (mapH / 2);
+
+                                // No clamping needed if we auto-fit? 
+                                // Actually, we might still want clamping if scale cap is hit.
+                                const clampedX = Math.max(5, Math.min(mapW - 5, miniX));
+                                const clampedY = Math.max(5, Math.min(mapH - 5, miniY));
+
+                                return (
+                                    <div key={id}
+                                        className={cn(
+                                            "absolute w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-sm border border-white/50",
+                                            isMe ? "bg-indigo-500 z-10" : "bg-slate-400"
+                                        )}
+                                        style={{ left: clampedX, top: clampedY }}
+                                    />
+                                );
+                            })}
+                        </div>
+                    );
+                })()}
             </div>
 
             <AudioChat
